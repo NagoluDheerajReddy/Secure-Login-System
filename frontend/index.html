@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Secure Login System</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1d2671, #c33764);
+}
+
+.container {
+    width: 350px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    color: white;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.tabs button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding-bottom: 5px;
+}
+
+.tabs .active {
+    border-bottom: 2px solid #fff;
+}
+
+.form {
+    display: none;
+    animation: fade 0.3s ease;
+}
+
+.form.active {
+    display: block;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+}
+
+button.main-btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #ff7eb3;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button.main-btn:hover {
+    background: #ff4f91;
+}
+
+@keyframes fade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2 style="text-align:center;">🔐 Secure Login</h2>
+
+    <div class="tabs">
+        <button id="loginTab" class="active" onclick="showForm('login')">Login</button>
+        <button id="registerTab" onclick="showForm('register')">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div id="loginForm" class="form active">
+        <input type="email" id="logEmail" placeholder="Email">
+        <input type="password" id="logPassword" placeholder="Password">
+        <button class="main-btn" onclick="login()">Login</button>
+    </div>
+
+    <!-- Register -->
+    <div id="registerForm" class="form">
+        <input type="text" id="regUsername" placeholder="Username">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPassword" placeholder="Password">
+        <button class="main-btn" onclick="register()">Create Account</button>
+    </div>
+
+</div>
+
+<script>
+const API = "http://localhost:5000/api/auth";
+
+// 🔁 Switch tabs
+function showForm(type) {
+    document.getElementById("loginForm").classList.remove("active");
+    document.getElementById("registerForm").classList.remove("active");
+
+    document.getElementById("loginTab").classList.remove("active");
+    document.getElementById("registerTab").classList.remove("active");
+
+    if (type === "login") {
+        document.getElementById("loginForm").classList.add("active");
+        document.getElementById("loginTab").classList.add("active");
+    } else {
+        document.getElementById("registerForm").classList.add("active");
+        document.getElementById("registerTab").classList.add("active");
+    }
+}
+
+// ✅ FIXED LOGIN FUNCTION
+async function login() {
+    const email = document.getElementById("logEmail").value.trim();
+    const password = document.getElementById("logPassword").value.trim();
+
+    if (!email || !password) {
+        alert("Enter email and password");
+        return;
+    }
+
+    console.log("Login clicked");
+
+    try {
+        const res = await fetch(`${API}/login`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        console.log(res.status, data);
+
+        if (res.ok) {
+            window.location.href = "dashboard.html";
+        } else {
+            alert(data.message || "Login failed");
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Server not reachable");
+    }
+}
+
+// Register
+async function register() {
+    const res = await fetch(`${API}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            username: regUsername.value,
+            email: regEmail.value,
+            password: regPassword.value
+        })
+    });
+
+    const data = await res.json();
+    alert(data.message || "Error");
+
+    if (res.ok) showForm("login");
+}
+</script>
+
+</body>
+</html>
